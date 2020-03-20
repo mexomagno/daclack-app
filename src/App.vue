@@ -40,6 +40,8 @@
 <script>
 import TestButtons from './pages/TestButtons';
 import Toast from './components/Toast';
+import bluetoothSerial from 'cordova-plugin-bluetooth-serial/www/bluetoothSerial'
+import EventBus from './event-bus'
 
 export default {
   name: 'App',
@@ -48,9 +50,28 @@ export default {
     TestButtons,
     Toast,
   },
-
   data: () => ({
     //
   }),
+
+  mounted() {
+    bluetoothSerial.isEnabled((result) => {
+      EventBus.$emit('toast-info', "IS ENABLED")
+      console.log(result)
+    },
+    (result) => {
+      EventBus.$emit('toast-error', "IS NOT ENABLED")
+      console.log(result)
+      bluetoothSerial.enable((result) => {
+        EventBus.$emit('toast-info', "ENABLED")
+        console.log(result)
+      }, 
+      (result) => {
+        EventBus.$emit('toast-error', "COULD NOT ENABLE")
+        console.log(result)
+      })
+    }
+    )
+  }
 };
 </script>

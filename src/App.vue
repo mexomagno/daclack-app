@@ -58,6 +58,7 @@ export default {
     bluetoothSerial.isEnabled((result) => {
       EventBus.$emit('toast-info', "IS ENABLED")
       console.log(result)
+      return
     },
     (result) => {
       EventBus.$emit('toast-error', "IS NOT ENABLED")
@@ -65,11 +66,14 @@ export default {
       bluetoothSerial.enable((result) => {
         EventBus.$emit('toast-info', "ENABLED")
         console.log(result)
+        return
       }, 
       (result) => {
-        EventBus.$emit('toast-error', "COULD NOT ENABLE")
+        EventBus.$emit('toast-error', "COULD NOT ENABLEEE")
         console.log(result)
+        return 
       })
+      return
     }
     )
   }

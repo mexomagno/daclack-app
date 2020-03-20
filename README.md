@@ -1,5 +1,8 @@
 # daclack-app
 
+
+Bluetooth powered by [cordova-plugin-bluetooth-serial](https://github.com/don/BluetoothSerial)
+
 ## Project setup
 ```
 yarn install

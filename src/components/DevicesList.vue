@@ -2,14 +2,18 @@
   <div v-if="show">
     <v-dialog v-model="show">
       <v-card>
-        <v-card-title><v-icon>mdi-bluetooth-connect</v-icon>Devices</v-card-title>
+        <v-card-title><v-icon>mdi-bluetooth-connect</v-icon>{{devices.length}} Devices</v-card-title>
         <v-progress-linear  v-if="scanning" indeterminate color="secondary"></v-progress-linear>
         <v-card-text>
           <v-list shaped>
-            <v-list-item v-for="device in orderedDevices" :key="`device_${device.name}`" :disabled="!isBtModule(device)">
+            <v-list-item v-for="device in orderedDevices" :key="`device_${device.name}`" :disabled="!isBtModule(device)" @click="$emit('device-selected', device)">
               <!-- name, address, id, class   -->
-              <v-icon class="mr-2">{{ isBtModule(device) ? 'mdi-clock-digital' : 'mdi-bluetooth'}}</v-icon>
+              <v-list-item-icon>
+                <v-icon>{{ isBtModule(device) ? 'mdi-clock-digital' : 'mdi-bluetooth'}}</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
               <div>{{device.name}}</div>
+              </v-list-item-content>
             </v-list-item>
           </v-list>
         </v-card-text>

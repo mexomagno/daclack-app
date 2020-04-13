@@ -33,11 +33,12 @@
     <v-content>
       <v-btn v-if="!connected" @click="discover">Scan</v-btn>
       <div class="title">Debug</div>
-      <div><pre>{{debug}}</pre></div>
-      <div v-for="(device, index) in discoveredDevices" :key="`device_${index}`">{{device}}</div>
+      <div><pre>{{debug}}<v-btn class="error" @click="disconnect">Force Disconnect</v-btn></pre></div>
       <devices-list :show="showScan" :scanning="scanning" :devices="discoveredDevices" @device-selected="connectToDevice" @dialog-closed="showScan = false"/>
+      <control-panel v-if="connected" :device="currentDevice" @send-command="sendCommand" @disconnect="disconnect"/>
     </v-content>
     <toast />
+    <base-dialog v-if="disconnectDeviceDialog" title="Unsupported device connected" subtitle="Do you want to disconnect from your current bluetooth device" positiveButton="Disconnect" @positive-click="dialogAction()"/>
   </v-app>
 </template>
 
@@ -47,6 +48,7 @@ import Toast from './components/Toast';
 import bluetoothSerial from 'cordova-plugin-bluetooth-serial/www/bluetoothSerial'
 import EventBus from './event-bus'
 import DevicesList from './components/DevicesList'
+import ControlPanel from './pages/ControlPanel'
 
 export default {
   name: 'App',
@@ -55,6 +57,7 @@ export default {
     // TestButtons,
     Toast,
     DevicesList,
+    ControlPanel,
   },
   data: () => ({
     debug: '', 
@@ -62,6 +65,9 @@ export default {
     showScan: false, 
     scanning: false,
     connected: false,
+    currentDevice: null,
+    disconnectDeviceDialog: false,
+    dialogAction: () => {}
   }),
 
   mounted() {
@@ -69,31 +75,42 @@ export default {
     bluetoothSerial.setDeviceDiscoveredListener(this.onDeviceDiscovered)
 
     bluetoothSerial.isEnabled((result) => {
-      EventBus.$emit('toast-info', "IS ENABLED")
       console.log(result)
-      this.discover()
-      return
+      this.checkConnected()
     },
     (result) => {
-      EventBus.$emit('toast-error', "IS NOT ENABLED")
       console.log(result)
+      EventBus.$emit('toast-info', "Enabling Bluetooth antenna...")
       bluetoothSerial.enable((result) => {
-        EventBus.$emit('toast-info', "ENABLED")
         console.log(result)
-        this.discover()
-        return
+        this.checkConnected()
       }, 
       (result) => {
-        EventBus.$emit('toast-error', "COULD NOT ENABLEEE")
-        console.log(result)
+        EventBus.$emit('toast-error', "Could not enable Bluetooth!")
+        console.error(result)
         return 
       })
-      return
     }
     )
 
   }, 
   methods: {
+    checkConnected() {
+      // Check if already connected to a daclack device
+      bluetoothSerial.isConnected(() => {
+        // Check if device is supported
+        bluetoothSerial.disconnect(() => {
+          this.connected = false
+          this.currentDevice = null
+          this.discover()
+        }, error => {
+          console.error("Could not disconnect from current device", error)
+        })
+      }, error => {
+        console.log("not connected", error)
+        this.discover()
+      })
+    },
     discover() {
       // Discover
       this.discoveredDevices = []
@@ -116,7 +133,48 @@ export default {
       }
     }, 
     connectToDevice(device){
+      this.showScan = false
       console.log("Connecting to device", device)
+      bluetoothSerial.connect(device.address, 
+        result => {
+        EventBus.$emit('toast-success', `Connected to '${device.name}'`)
+        console.log("Connected", result)
+        bluetoothSerial.subscribe('\n', result => {
+          console.log("new data received: ", result)
+        }, error => {
+          console.error("Error on subscription", error)
+        })
+        this.currentDevice = device
+        this.connected = true
+      }, error => {
+        EventBus.$emit('toast-error', "Could not connect: " + error)
+      })
+    }, 
+    disconnect(){
+      if (!this.connected || !this.currentDevice)
+        return
+      bluetoothSerial.disconnect(result => {
+        console.log("Disconnected: ", result)
+        EventBus.$emit('toast-success', `Disconnected from '${this.currentDevice.name}'`)
+        this.currentDevice = null
+        this.connected = false
+      }, error => {
+        EventBus.$emit('toast-error', "Could not disconnect: " + error)
+      })
+    }, 
+    isBtModule(device){
+      return device.address.startsWith('20:15:05')
+    }, 
+    sendCommand(cmd){
+      if (!this.connected || !this.currentDevice){
+        console.log("No device connected")
+        return
+      }
+      bluetoothSerial.write(cmd, result => {
+        console.log("Sent data", result)
+      }, error => {
+        console.error("Error sending data: ", error)
+      })
     }
   }
 };

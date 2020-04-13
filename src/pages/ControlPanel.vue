@@ -1,5 +1,23 @@
 <template>
-  <v-card>
+  <v-container>
+    <v-row>
+      <v-col cols="6" class="text-center py-8" v-for="action in actions" :key="`action_${action.name}`" :class="`${action.color}`" @click="action.action">
+        <v-icon>mdi-{{action.icon}}</v-icon>
+        <div>{{action.name}}</div>
+      </v-col> 
+    </v-row>
+    <v-row justify="center" style="border: solid 1px red">
+      <v-col>
+        <v-btn class="error text-center" @click="$emit('disconnect')"><v-icon>mdi-close</v-icon>Disconnect</v-btn>
+      </v-col>
+    </v-row>
+    <div class="pre">
+      <div v-for="(response, index) in responses" :key="`response_${index}`">
+        {{response}}
+      </div>
+    </div>
+    <!-- <div>
+      
     <v-btn @click="showDate">Show date</v-btn>
     <v-btn @click="updateDate">Set current time</v-btn>
     <div class="d-flex ">
@@ -7,15 +25,37 @@
       <v-btn>Display text</v-btn>
     </div>
     <v-btn class="error" @click="$emit('disconnect')">Disconnect</v-btn>
-  </v-card>
+    </div> -->
+  </v-container>
 </template>
 <script>
+import EventBus from '@/event-bus'
 export default {
 
   name: 'ControlPanel',
 
   data() {
     return {
+      actions: [
+        {
+          name: "Update Time",
+          icon: "clock",
+          color: "cyan",
+          action: this.updateDate
+        },
+        {
+          name: "Show date",
+          icon: "calendar",
+          color: "yellow",
+          action: this.showDate,
+        }, 
+        {
+          name: "Say hello",
+          icon: "text",
+          color: "lime",
+          action: this.sayHello
+        }
+      ],
       commands: {
         SHOW_DATE: "DATE",
         SET_TIME: "ST",
@@ -24,8 +64,14 @@ export default {
         SETTINGS: {
           TEXT_SCROLL_DELAY: "SX"
         }
-      }
+      }, 
+      responses: []
     }
+  },
+  mounted() {
+    EventBus.$on('new-response', (val) => {
+      this.responses.push(val)
+    })
   },
   methods: {
     showDate() {
@@ -36,6 +82,9 @@ export default {
       setTimeout(() => {
         this.sendCommand(`${this.commands.SET_TIMEZONE}-4`)
       },200)
+    },
+    sayHello(){
+      this.sendCommand(`${this.commands.SHOW_TEXT}Wena chuchaetumare xdd`)
     },
     sendCommand(cmd) {
       console.log("Sending command ", cmd)

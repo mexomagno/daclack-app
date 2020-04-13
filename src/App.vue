@@ -141,6 +141,7 @@ export default {
         console.log("Connected", result)
         bluetoothSerial.subscribe('\n', result => {
           console.log("new data received: ", result)
+          EventBus.$emit('new-response', result)
         }, error => {
           console.error("Error on subscription", error)
         })

@@ -3,6 +3,12 @@
 
 Bluetooth powered by [cordova-plugin-bluetooth-serial](https://github.com/don/BluetoothSerial)
 
+
+## Brainstorm
+- Auto-sync timestamp al conectarse (con pregunta)
+- Sync mensajes whatsapp
+
+
 ## Project setup
 ```
 yarn install

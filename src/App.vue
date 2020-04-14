@@ -1,9 +1,10 @@
 <template>
   <v-app>
     <v-app-bar app color="primary" dark>
+      <v-btn icon @click="settingsMenu = true"><v-icon>mdi-cog</v-icon></v-btn> 
       <div class="d-flex align-center">
         <v-img alt="logo" class="shrink mr-2" contain src="@/assets/applogo.png" transition="scale-transition" width="40" />
-        <div class="display-1 font-weight-bold">DaClack</div>
+        <div class="display-1 font-weight-bold">DaClak</div>
       </div>
       <v-spacer></v-spacer>
       <v-btn href="https://github.com/mexomagno/DaClak" target="_blank" text>
@@ -27,6 +28,7 @@
       </v-container>
     </v-content>
     <toast />
+    <settings-menu :show="settingsMenu" @close="settingsMenu = false"/>
     <base-dialog v-if="disconnectDeviceDialog" title="Unsupported device connected" subtitle="Do you want to disconnect from your current bluetooth device" positiveButton="Disconnect" @positive-click="dialogAction()" />
   </v-app>
 </template>
@@ -38,16 +40,17 @@ import EventBus from './event-bus'
 import DeviceScanner from './components/DeviceScanner'
 import ControlPanel from './pages/ControlPanel'
 import ConnectionIndicator from './components/ConnectionIndicator'
+import SettingsMenu from './pages/SettingsMenu'
 
 export default {
   name: 'App',
 
   components: {
-    // TestButtons,
     Toast,
     DeviceScanner,
     ControlPanel,
-    ConnectionIndicator
+    ConnectionIndicator,
+    SettingsMenu
   },
   data: () => ({
     debug: '',
@@ -58,7 +61,8 @@ export default {
     connected: false,
     currentDevice: null,
     disconnectDeviceDialog: false,
-    dialogAction: () => {}
+    dialogAction: () => {}, 
+    settingsMenu: false
   }),
 
   mounted() {

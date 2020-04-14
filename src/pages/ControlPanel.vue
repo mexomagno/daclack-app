@@ -6,11 +6,6 @@
         <div>{{action.name}}</div>
       </v-col> 
     </v-row>
-    <v-row justify="center" style="border: solid 1px red">
-      <v-col>
-        <v-btn class="error text-center" @click="$emit('disconnect')"><v-icon>mdi-close</v-icon>Disconnect</v-btn>
-      </v-col>
-    </v-row>
     <div class="pre">
       <div v-for="(response, index) in responses" :key="`response_${index}`">
         {{response}}

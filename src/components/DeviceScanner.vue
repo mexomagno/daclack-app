@@ -26,7 +26,7 @@
 </template>
 <script>
 export default {
-  name: 'DevicesList',
+  name: 'DeviceScanner',
   props: {
     show: {
       type: Boolean,
@@ -43,7 +43,8 @@ export default {
   },
   data() {
     return {
-
+      time_to_autoconnect: 3000,
+      autoconnect_timeout: null
     }
   }, 
   computed: {
@@ -66,6 +67,32 @@ export default {
   methods: {
     isBtModule(device){
       return device.address.startsWith('20:15:05')
+    }, 
+    startAutoConnectCountdown(device){
+      const loop = () => {
+        this.time_to_autoconnect -= 1000
+        console.log("Countdown: ", this.time_to_autoconnect)
+        if (this.time_to_autoconnect <= 0){
+          this.$emit('device-selected', device)
+          this.autoconnect_timeout = null
+          return
+        }
+        this.autoconnect_timeout = setTimeout(loop, 1000)
+      }
+
+      this.time_to_autoconnect = 3000
+      loop()
+    }, 
+
+  },
+  watch: {
+    devices(newval) {
+      const validDevices = newval.filter(device => {
+        return this.isBtModule(device)
+      })
+      if (validDevices.length && this.autoconnect_timeout != null){
+        this.startAutoConnectCountdown(validDevices[0])
+      }
     }
   }
 }
